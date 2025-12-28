@@ -1,0 +1,140 @@
+diff --git a/app/server/core/__tests__/config.test.ts b/app/server/core/__tests__/config.test.ts
+new file mode 100644
+index 0000000..90ace90
+--- /dev/null
++++ b/app/server/core/__tests__/config.test.ts
+@@ -0,0 +1,72 @@
++import { test, describe, expect } from "bun:test";
++import { type } from "arktype";
++
++// Re-create the schema to test in isolation (avoids side effects from importing config)
++const createEnvSchema = () =>
++	type({
++		NODE_ENV: type.enumerated("development", "production", "test").default("production"),
++		SERVER_IP: 'string = "localhost"',
++		SERVER_IDLE_TIMEOUT: 'string.integer.parse = "60"',
++		PORT: 'string.integer.parse = "4096"',
++		"MIGRATIONS_PATH?": "string",
++	}).pipe((s) => ({
++		__prod__: s.NODE_ENV === "production",
++		environment: s.NODE_ENV,
++		serverIp: s.SERVER_IP,
++		serverIdleTimeout: s.SERVER_IDLE_TIMEOUT,
++		port: s.PORT,
++		migrationsPath: s.MIGRATIONS_PATH,
++	}));
++
++describe("config", () => {
++	describe("PORT", () => {
++		test("should default to 4096 when not set", () => {
++			const schema = createEnvSchema();
++			const result = schema({});
++
++			expect(result).not.toBeInstanceOf(type.errors);
++			if (!(result instanceof type.errors)) {
++				expect(result.port).toBe(4096);
++			}
++		});
++
++		test("should parse PORT as integer", () => {
++			const schema = createEnvSchema();
++			const result = schema({ PORT: "8080" });
++
++			expect(result).not.toBeInstanceOf(type.errors);
++			if (!(result instanceof type.errors)) {
++				expect(result.port).toBe(8080);
++			}
++		});
++
++		test("should reject non-integer PORT", () => {
++			const schema = createEnvSchema();
++			const result = schema({ PORT: "not-a-number" });
++
++			expect(result).toBeInstanceOf(type.errors);
++		});
++	});
++
++	describe("MIGRATIONS_PATH", () => {
++		test("should be undefined when not set", () => {
++			const schema = createEnvSchema();
++			const result = schema({});
++
++			expect(result).not.toBeInstanceOf(type.errors);
++			if (!(result instanceof type.errors)) {
++				expect(result.migrationsPath).toBeUndefined();
++			}
++		});
++
++		test("should accept a valid path", () => {
++			const schema = createEnvSchema();
++			const result = schema({ MIGRATIONS_PATH: "/custom/migrations" });
++
++			expect(result).not.toBeInstanceOf(type.errors);
++			if (!(result instanceof type.errors)) {
++				expect(result.migrationsPath).toBe("/custom/migrations");
++			}
++		});
++	});
++});
+diff --git a/app/server/core/config.ts b/app/server/core/config.ts
+index 81320db..59408c8 100644
+--- a/app/server/core/config.ts
++++ b/app/server/core/config.ts
+@@ -5,11 +5,15 @@ const envSchema = type({
+ 	NODE_ENV: type.enumerated("development", "production", "test").default("production"),
+ 	SERVER_IP: 'string = "localhost"',
+ 	SERVER_IDLE_TIMEOUT: 'string.integer.parse = "60"',
++	PORT: 'string.integer.parse = "4096"',
++	"MIGRATIONS_PATH?": "string",
+ }).pipe((s) => ({
+ 	__prod__: s.NODE_ENV === "production",
+ 	environment: s.NODE_ENV,
+ 	serverIp: s.SERVER_IP,
+ 	serverIdleTimeout: s.SERVER_IDLE_TIMEOUT,
++	port: s.PORT,
++	migrationsPath: s.MIGRATIONS_PATH,
+ }));
+ 
+ const parseConfig = (env: unknown) => {
+diff --git a/app/server/db/db.ts b/app/server/db/db.ts
+index 0710945..9a71103 100644
+--- a/app/server/db/db.ts
++++ b/app/server/db/db.ts
+@@ -14,9 +14,13 @@ const sqlite = new Database(DATABASE_URL);
+ export const db = drizzle({ client: sqlite, schema });
+ 
+ export const runDbMigrations = () => {
+-	let migrationsFolder = path.join("/app", "assets", "migrations");
++	let migrationsFolder: string;
+ 
+-	if (!config.__prod__) {
++	if (config.migrationsPath) {
++		migrationsFolder = config.migrationsPath;
++	} else if (config.__prod__) {
++		migrationsFolder = path.join("/app", "assets", "migrations");
++	} else {
+ 		migrationsFolder = path.join("/app", "app", "drizzle");
+ 	}
+ 
+diff --git a/app/server/index.ts b/app/server/index.ts
+index 5e290a6..f974526 100644
+--- a/app/server/index.ts
++++ b/app/server/index.ts
+@@ -18,7 +18,7 @@ await validateRequiredMigrations(REQUIRED_MIGRATIONS);
+ 
+ startup();
+ 
+-logger.info(`Server is running at http://localhost:4096`);
++logger.info(`Server is running at http://localhost:${config.port}`);
+ 
+ export type AppType = typeof app;
+ 
+@@ -36,7 +36,7 @@ process.on("SIGINT", async () => {
+ 
+ export default await createHonoServer({
+ 	app,
+-	port: 4096,
++	port: config.port,
+ 	customBunServer: {
+ 		idleTimeout: config.serverIdleTimeout,
+ 		error(err) {
