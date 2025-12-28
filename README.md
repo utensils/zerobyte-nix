@@ -18,7 +18,7 @@ Nix flake for [Zerobyte](https://github.com/nicotsx/zerobyte) - a self-hosted ba
 ### Run directly
 
 ```bash
-nix run github:jamesbrink/zerobyte-nix
+nix run github:utensils/zerobyte-nix
 ```
 
 ### Add to your flake
@@ -27,7 +27,7 @@ nix run github:jamesbrink/zerobyte-nix
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    zerobyte-nix.url = "github:jamesbrink/zerobyte-nix";
+    zerobyte-nix.url = "github:utensils/zerobyte-nix";
   };
 
   outputs = { self, nixpkgs, zerobyte-nix, ... }: {
