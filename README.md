@@ -1,5 +1,7 @@
 # zerobyte-nix
 
+[![CI](https://github.com/utensils/zerobyte-nix/actions/workflows/ci.yml/badge.svg)](https://github.com/utensils/zerobyte-nix/actions/workflows/ci.yml)
+[![FlakeHub](https://img.shields.io/endpoint?url=https://flakehub.com/f/utensils/zerobyte-nix/badge)](https://flakehub.com/flake/utensils/zerobyte-nix)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Nix Flake](https://img.shields.io/badge/Nix-Flake-blue?logo=nixos&logoColor=white)](https://nixos.wiki/wiki/Flakes)
 [![NixOS](https://img.shields.io/badge/NixOS-Module-5277C3?logo=nixos&logoColor=white)](https://nixos.org/)
@@ -14,12 +16,6 @@ Nix flake for [Zerobyte](https://github.com/nicotsx/zerobyte) - a self-hosted ba
 - FUSE mount support on Linux
 
 ## Usage
-
-### Run directly
-
-```bash
-nix run github:utensils/zerobyte-nix
-```
 
 ### Add to your flake
 

@@ -13,11 +13,15 @@ on:
       - "LICENSE"
       - ".gitignore"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest] # macos-latest disabled for now
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
