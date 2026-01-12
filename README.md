@@ -62,6 +62,9 @@ Nix flake for [Zerobyte](https://github.com/nicotsx/zerobyte) - a self-hosted ba
 | `user` | string | `"zerobyte"` | User to run as |
 | `group` | string | `"zerobyte"` | Group to run as |
 | `openFirewall` | bool | `false` | Open firewall port |
+| `trustedOrigins` | list | `[]` | Trusted origins for CORS (for reverse proxy) |
+| `serverIdleTimeout` | int | `60` | Server idle timeout in seconds |
+| `disableRateLimiting` | bool | `false` | Disable rate limiting (dev/testing only) |
 | `fuse.enable` | bool | `true` | Enable FUSE support (Linux only) |
 | `protectHome` | bool | `true` | Enable ProtectHome hardening |
 | `extraReadWritePaths` | list | `[]` | Additional writable paths |
@@ -102,12 +105,6 @@ git commit -m "chore: update to v0.21.0"
 ```
 
 The `bun.nix` file must always match the upstream release referenced in `flake.lock`.
-
-## Patches
-
-This flake applies patches from upstream PRs not yet merged:
-
-- [PR #253](https://github.com/nicotsx/zerobyte/pull/253) - Adds configurable `PORT` and `MIGRATIONS_PATH` environment variables
 
 ## License
 

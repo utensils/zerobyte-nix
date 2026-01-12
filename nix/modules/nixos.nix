@@ -85,6 +85,35 @@ in
       description = "Additional environment variables for Zerobyte.";
     };
 
+    trustedOrigins = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [
+        "https://zerobyte.example.com"
+        "https://backup.local"
+      ];
+      description = ''
+        List of trusted origins for CORS.
+        Required when running behind a reverse proxy.
+        Each origin should include the protocol (https://).
+      '';
+    };
+
+    serverIdleTimeout = lib.mkOption {
+      type = lib.types.int;
+      default = 60;
+      description = "Server idle timeout in seconds.";
+    };
+
+    disableRateLimiting = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Disable rate limiting.
+        Only recommended for development or testing environments.
+      '';
+    };
+
     fuse = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -150,10 +179,18 @@ in
         NODE_ENV = "production";
         PORT = toString cfg.port;
         SERVER_IP = cfg.serverIp;
+        SERVER_IDLE_TIMEOUT = toString cfg.serverIdleTimeout;
         RESTIC_HOSTNAME = cfg.resticHostname;
         DATABASE_URL = "${cfg.dataDir}/data/zerobyte.db";
         MIGRATIONS_PATH = "${cfg.package}/lib/zerobyte/drizzle";
+        APP_VERSION = cfg.package.version;
         TZ = cfg.timezone;
+      }
+      // lib.optionalAttrs (cfg.trustedOrigins != [ ]) {
+        TRUSTED_ORIGINS = lib.concatStringsSep "," cfg.trustedOrigins;
+      }
+      // lib.optionalAttrs cfg.disableRateLimiting {
+        DISABLE_RATE_LIMITING = "true";
       }
       // cfg.environment;
 

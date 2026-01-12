@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zerobyte-src = {
-      url = "github:nicotsx/zerobyte/v0.20.0";
+      url = "github:nicotsx/zerobyte/v0.22.0";
       flake = false;
     };
     treefmt-nix = {
@@ -49,8 +49,8 @@
       # Then run: nix flake update zerobyte-src && nix develop -c update-bun-nix
       config = {
         inherit zerobyte-src;
-        version = "0.20.0";
-        patches = [ ./patches/0001-add-port-and-migrations-path-config.patch ];
+        version = "0.22.0";
+        patches = [ ];
         bunNix = ./bun.nix;
       };
 
